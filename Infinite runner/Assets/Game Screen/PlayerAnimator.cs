@@ -30,7 +30,7 @@ public class PlayerAnimator : MonoBehaviour
         if (Input.GetKey(KeyCode.W))
             animator.SetBool("isRunning", true);
         else animator.SetBool("isRunning", false);
-        if (Input.GetKeyDown(KeyCode.Space)&&Player.Attacking)
+        if (Input.GetKey(KeyCode.Space)&&Player.Attacking)
             animator.SetTrigger("Attack");
         #region Idle part
         if (Input.GetKey(KeyCode.D))

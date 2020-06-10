@@ -32,17 +32,23 @@ class RestartGameMenu : MonoBehaviour
     /// </summary>
     public void RestartGame()
     {
-        Player.health = 3;
+        ScoreCounter.resetScore();
+        Player.Reset();
         GameEnded = false;
         SceneManager.LoadScene(1);
     }
 
+    public static void RestartGameScene()
+    {
+        ScoreCounter.resetScore();
+        GameEnded = false;
+        SceneManager.LoadScene(1);
+    }
     /// <summary>
     /// Function that corresponds to a menu button
     /// </summary>
     public void LoadMenu()
     {
-        Player.health = 3;
         GameEnded = false;
         SceneManager.LoadScene(0);
     }

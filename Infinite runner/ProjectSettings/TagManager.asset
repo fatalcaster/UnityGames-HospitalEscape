@@ -12,6 +12,8 @@ TagManager:
   - WallRight
   - Bullet
   - Enemy
+  - SimpleDoors
+  - Chair
   layers:
   - Default
   - TransparentFX
@@ -23,11 +25,11 @@ TagManager:
   - 
   - EnemyLayer
   - BulletLayer
-  - 
-  - 
-  - 
-  - 
-  - 
+  - StaticWall
+  - SpawnedWall
+  - ThroughPlayer
+  - Player
+  - IncludesPlayerExcludesEverythingElse
   - 
   - 
   - 

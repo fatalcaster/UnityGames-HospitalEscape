@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Assertions.Must;
 
 public class Player : MonoBehaviour
 {
@@ -12,13 +14,14 @@ public class Player : MonoBehaviour
     /// <summary>
     /// Speed variables
     /// </summary>
-    
-    public float speedNormal=3f;
+
+    public float speedNormal = 3f;
     public float slowDownSpeed = 1f;
     public static float speed;
     public float rotationSpeed = 200f;
 
-
+    public Transform leftBorder;
+    public Transform rightBorder;
     /// <summary>
     /// Attack properties
     /// </summary>
@@ -26,6 +29,7 @@ public class Player : MonoBehaviour
     public float AttackSpeed = 50f;
     public float AttackTime;
     public static bool Attacking = false;
+    public static bool notMoving = true;
 
     /// <summary>
     /// Player position and stats
@@ -37,15 +41,15 @@ public class Player : MonoBehaviour
     #region Private Members
 
     static float playersAngle = 0f;
-    
+
     private bool moveableLeft = true;
     private bool moveableRight = true;
     private float horizontalSpeedPercentage = 0f;
-    
+
     float mAttackDelay;
     bool mAttackedRecently = false;
 
-    
+
     float mAttackTime;
 
     #endregion
@@ -61,8 +65,9 @@ public class Player : MonoBehaviour
 
         if (collision.gameObject.tag == "spawnedWall" || collision.gameObject.tag == "Wall")
             speed = slowDownSpeed;
-        if (collision.gameObject.tag == "Bullet"&&health>0)
+        if (collision.gameObject.tag == "Bullet" && health > 0)
             health--;
+
     }
 
     /// <summary>
@@ -71,7 +76,10 @@ public class Player : MonoBehaviour
     /// <param name="collision">The object which player countered</param>
     protected void OnCollisionExit(Collision collision)
     {
-        speed = speedNormal;
+        if (collision.gameObject.tag == "spawnedWall" || collision.gameObject.tag == "Wall")
+            speed = speedNormal;
+
+
     }
     #endregion
 
@@ -93,7 +101,7 @@ public class Player : MonoBehaviour
         {
             transform.Rotate(-Vector3.up * rotationSpeed * Time.deltaTime);
         }
-        
+
 
         //If S is pressed the Player will "go" backwards
         if (Input.GetKey(KeyCode.S))
@@ -101,56 +109,57 @@ public class Player : MonoBehaviour
             transform.Translate(-temp * Time.deltaTime *
                     slowDownSpeed * horizontalSpeedPercentage, Space.World);
         }
-        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.W) && !mAttackedRecently)
+        if (Input.GetKey(KeyCode.Space) && Input.GetKey(KeyCode.W) && !mAttackedRecently && !outOfBorders())
         {
             setUpAttack();
-
+            notMoving = false;
         }
         else if (Input.GetKey(KeyCode.W))
+        {
             transform.Translate(temp * Time.deltaTime *
                     speed * horizontalSpeedPercentage, Space.World);
+            notMoving = false;
+        }
+        else notMoving = true;
+    }
+    public static bool alive { get { return health > 0; } }
+
+    /// <summary>
+    /// Makes player die
+    /// </summary>
+    void Die()
+    {
+        health = 0;
+    }
+    /// <summary>
+    /// Checks if the player is out of the  borders
+    /// </summary>
+    /// <returns>Returns true if the player is out of the borders</returns>
+    bool outOfBorders()
+    {
+        if (transform.position.z <= leftBorder.position.z + leftBorder.localScale.z / 2f)
+            return true;
+        if (transform.position.z >= rightBorder.position.z - rightBorder.localScale.z / 2f)
+            return true;
+        return false;
     }
 
     /// <summary>
     /// Configures speed based on the players angle
     /// </summary>
-    /*
     private void configureMovementSpeed()
     {
+        float horizontalSpeedPercentage = 0f, verticalSpeedPercentage = 0f;
         playersAngle = transform.rotation.eulerAngles.y;
-        Debug.Log("players angle" + playersAngle);
-        bool negativeMovement = playersAngle > 180f ? false : true;
-        playersAngle %= 180f;
-        if (playersAngle >= 0f && playersAngle <= 20f)
-        {
-            horizontalSpeedPercentage = 1f;
-            WallsMovement.verticalSpeedPercentage = 0f;
-        }
-        else if (playersAngle > 20f && playersAngle <= 70f)
-        {
-            horizontalSpeedPercentage = 0.5f;
-            WallsMovement.verticalSpeedPercentage = negativeMovement ? -0.5f : 0.5f;
-        }
-        else if (playersAngle > 70f && playersAngle < 90f)
-        {
-            horizontalSpeedPercentage = 0f;
-            WallsMovement.verticalSpeedPercentage = negativeMovement ? -1f : 1f;
-        }
-
-    }*/
-    private void configureMovementSpeed()
-    {
-        float horizontalSpeedPercentage=0f, verticalSpeedPercentage=0f;
-        playersAngle = transform.rotation.eulerAngles.y;
-        short angleCase = (short) (Mathf.Floor(playersAngle / 90f) + 1);
+        short angleCase = (short)(Mathf.Floor(playersAngle / 90f) + 1);
         float tempAngle = playersAngle;
         playersAngle %= 90f;
         switch (angleCase)
         {
             case 1:
-                horizontalSpeedPercentage = Mathf.Cos(playersAngle)* Mathf.Cos(playersAngle);
-                verticalSpeedPercentage  = horizontalSpeedPercentage - 1;
-                if (playersAngle == 0f)
+                horizontalSpeedPercentage = Mathf.Cos(playersAngle) * Mathf.Cos(playersAngle);
+                verticalSpeedPercentage = horizontalSpeedPercentage - 1;
+                if (playersAngle <= 1e8 && playersAngle >= -1e8)
                 {
                     verticalSpeedPercentage = -1f;
                     horizontalSpeedPercentage = 0f;
@@ -159,25 +168,25 @@ public class Player : MonoBehaviour
             case 2:
                 horizontalSpeedPercentage = Mathf.Sin(playersAngle) * Mathf.Sin(playersAngle);
                 verticalSpeedPercentage = horizontalSpeedPercentage - 1;
-                if (playersAngle == 0f)
+                if (playersAngle <= 1e8 && playersAngle >= -1e8)
                 {
                     verticalSpeedPercentage = 0f;
                     horizontalSpeedPercentage = 1f;
                 }
                 break;
             case 3:
-                horizontalSpeedPercentage = Mathf.Cos(playersAngle)* Mathf.Cos(playersAngle);
+                horizontalSpeedPercentage = Mathf.Cos(playersAngle) * Mathf.Cos(playersAngle);
                 verticalSpeedPercentage = 1 - horizontalSpeedPercentage;
-                if (playersAngle == 0f)
+                if (playersAngle <= 1e8 && playersAngle >= -1e8)
                 {
                     verticalSpeedPercentage = 1f;
                     horizontalSpeedPercentage = 0f;
                 }
                 break;
             case 4:
-                verticalSpeedPercentage = Mathf.Sin(playersAngle)*Mathf.Sin(playersAngle);
+                verticalSpeedPercentage = Mathf.Sin(playersAngle) * Mathf.Sin(playersAngle);
                 horizontalSpeedPercentage = 1 - verticalSpeedPercentage;
-                if (playersAngle == 0f)
+                if (playersAngle <= 1e8 && playersAngle >= -1e8)
                 {
                     verticalSpeedPercentage = 0f;
                     horizontalSpeedPercentage = 1f;
@@ -185,19 +194,20 @@ public class Player : MonoBehaviour
                 break;
         }
         WallsMovement.verticalSpeedPercentage = verticalSpeedPercentage;
-        this.horizontalSpeedPercentage = horizontalSpeedPercentage*3;
-        Debug.Log("angle case:"+angleCase.ToString()+" ver:"+verticalSpeedPercentage.ToString()+" hor:"+horizontalSpeedPercentage.ToString());
+        this.horizontalSpeedPercentage = horizontalSpeedPercentage * 3;
+        // Debug.Log("angle case:"+angleCase.ToString()+" ver:"+verticalSpeedPercentage.ToString()+" hor:"+horizontalSpeedPercentage.ToString());
 
 
 
     }
+
     /// <summary>
     /// Checks if the player is dead
     /// </summary>
     /// <returns> True if the player is not alive</returns>
     public static bool Dead()
     {
-        return Player.health == 0;
+        return health == 0;
     }
 
     #endregion
@@ -215,7 +225,7 @@ public class Player : MonoBehaviour
             ResetAttackDelay();
         }
         if (timerTicked(mAttackTime)) ResetAttack();
-        
+
     }
 
     /// <summary>
@@ -269,11 +279,12 @@ public class Player : MonoBehaviour
         mAttackDelay = MaxAttackDelay;
     }
     #endregion
-    
+
     #region Start&Update
     // Start is called before the first frame update
     void Start()
     {
+        health = 3;
         speed = speedNormal;
         mAttackDelay = MaxAttackDelay;
         mAttackTime = AttackTime;
@@ -281,10 +292,17 @@ public class Player : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if (transform.position.y < -2f)
+            RestartGameMenu.RestartGameScene();
         manageTimers();
         if (Dead()) return;
         processInput();
         configureMovementSpeed();
+    }
+    public static void Reset()
+    {
+        health = 3;
     }
     #endregion
 

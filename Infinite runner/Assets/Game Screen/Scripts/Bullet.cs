@@ -13,7 +13,7 @@ public class Bullet : MonoBehaviour
     #endregion
 
     #region Private Members
-
+    float lifetime = 10f;
     Vector3 moveTowards; // Players position when the bullet was instantiated
     Vector3 startingPosition;// bullets starting position which is assigned to enemy spawner
     Rigidbody bullet; // Rigid body used to add force to the bullet
@@ -33,7 +33,8 @@ public class Bullet : MonoBehaviour
     }
     void Update()
     {
-
+        updateLifetime();
+        if (timerTicked(lifetime)) Destroy(gameObject);
         transform.LookAt(2 * startingPosition - moveTowards);
         movement();
         if (fired)
@@ -65,6 +66,23 @@ public class Bullet : MonoBehaviour
 
     }
 
+    #endregion
+
+    #region LifeTime Manager
+    /// <summary>
+    /// Returns true if the timer ticked
+    /// </summary>
+    /// <param name="timer"></param>
+    /// <returns>True if the timer ticked</returns>
+    bool timerTicked(float timer)
+    {
+        return timer <= 0;
+    }
+
+    void updateLifetime()
+    {
+        lifetime -= Time.deltaTime;
+    }
     #endregion
 
     #region Colliders

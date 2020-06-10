@@ -13,13 +13,31 @@ public class WallsMovement : MonoBehaviour
     static public bool collidingForward = false;
     static public bool collidingBackward = false;
     static public bool objectStill = true;
-
     #endregion
 
+
+    #region CodeReuseability
+
+    KeyCode forward = KeyCode.W;
+
+    KeyCode backward = KeyCode.S;
+
+    void setupKeyCodes()
+    {
+        if (gameObject.tag == "Chair" && transform.position.z > 0 || gameObject.tag == "SimpleDoors" && transform.position.z < 0)
+        {
+            forward = KeyCode.S;
+            backward = KeyCode.W;
+        }
+            
+        
+    }
+    #endregion
 
     #region Start&Update
     void Start()
     {
+        setupKeyCodes();
         speed = normalSpeed;  
     }
     void Update()
@@ -35,13 +53,13 @@ public class WallsMovement : MonoBehaviour
     /// </summary>
     private void movementController()
     {
-        if (Input.GetKey(KeyCode.S) && !collidingBackward)
+        if (Input.GetKey(backward) && !collidingBackward)
         {
             transform.Translate(Vector3.left * Time.deltaTime * speed 
                                 *verticalSpeedPercentage, Space.Self); //LEFT
             if (objectStill) objectStill = false;
         }
-        else if (Input.GetKey(KeyCode.W) && !collidingForward)
+        else if (Input.GetKey(forward) && !collidingForward)
         {
             transform.Translate(Vector3.right * Time.deltaTime 
                                 *verticalSpeedPercentage* speed, Space.Self); //RIGHT

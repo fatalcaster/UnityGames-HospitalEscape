@@ -28,6 +28,7 @@ public class Enemy : MonoBehaviour
     #region Start&Update
     void Start()
     {
+        pPosition = GameObject.Find("Player").transform;
         enemyAnimator = this.gameObject.GetComponent<Animator>();
         delay = -1f;
         haveBullet = false;
@@ -37,6 +38,7 @@ public class Enemy : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        destroyChecker();
         if (!alive) return;
         if (Player.health == 0)
         {
@@ -96,7 +98,14 @@ public class Enemy : MonoBehaviour
             objectStill = true;
         
     }
-
+    /// <summary>
+    /// Checks if the enemy has to die on his own
+    /// </summary>
+    private void destroyChecker()
+    {
+        if (transform.position.x > 15 || transform.position.y < -5f)
+            Destroy(gameObject);
+    }
     /// <summary>
     /// Checks if the enemy has to shoot
     /// </summary>
@@ -162,6 +171,8 @@ public class Enemy : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player" && Player.Attacking && alive)
         {
+            CountdownTimer.addExtraTime();
+            ScoreCounter.addExtraScore();
             enemyAnimator.SetTrigger("Die");
             Destroy(gameObject, 1f);
             alive = false;
@@ -173,6 +184,8 @@ public class Enemy : MonoBehaviour
     {
         if (collision.gameObject.tag == "Player" && Player.Attacking && alive)
         {
+            CountdownTimer.addExtraTime();
+            ScoreCounter.addExtraScore();
             enemyAnimator.SetTrigger("Die");
             Destroy(gameObject, 1f);
             alive = false;
